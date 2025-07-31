@@ -1,0 +1,69 @@
+package template
+
+templ Login(errorMsg string) {
+	@anonymousLayout("Anmeldung") {
+		<div class="login-container">
+			<div class="login-card">
+				<h2>Anmeldung zum Klassentreffen</h2>
+				<p class="login-description">
+					Gebe deine E-Mail-Adresse ein, um einen Anmeldelink zu erhalten.
+				</p>
+
+				if errorMsg != "" {
+					<div class="error-message">
+						{ errorMsg }
+					</div>
+				}
+
+				<form method="POST" action="/login" class="login-form">
+					<div class="form-group">
+						<label for="email" class="form-label">E-Mail-Adresse</label>
+						<input
+							type="email"
+							id="email"
+							name="email"
+							class="form-input"
+							placeholder="deine.email@beispiel.de"
+							required
+						/>
+					</div>
+
+					<button type="submit" class="btn btn-primary">
+						Anmeldelink senden
+					</button>
+				</form>
+
+				<div class="login-info">
+					<p>
+						<strong>Hinweis:</strong> Du erhältst eine E-Mail mit einem Anmeldelink,
+						der 24 Stunden gültig ist.
+					</p>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ LoginSent() {
+	@anonymousLayout("E-Mail gesendet") {
+		<div class="login-container">
+			<div class="login-card success">
+				<div class="success-icon">✓</div>
+				<h2>E-Mail wurde gesendet!</h2>
+				<p class="success-message">
+					Wir haben dir eine E-Mail mit einem Anmeldelink gesendet.
+					Bitte prüfen dein Postfach und klicken auf den Link,
+					um dich anzumelden.
+				</p>
+				<p class="login-info">
+					<strong>Hinweis:</strong> Der Link ist 24 Stunden gültig.
+					Falls du keine E-Mail erhalten haben, prüfen bitte auch
+					deinen Spam-Ordner.
+				</p>
+				<a href="/" class="btn btn-secondary">
+					Zurück zur Anmeldung
+				</a>
+			</div>
+		</div>
+	}
+}

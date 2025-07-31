@@ -1,0 +1,318 @@
+package template
+
+import (
+	"fmt"
+	"github.com/ostcar/klassentreffen/model"
+)
+
+templ AdminList(participants []model.Participant) {
+	@userLayout("Administration") {
+		<div class="admin-container">
+			<div class="admin-header">
+				<h2>Administration</h2>
+				<p class="admin-description">
+					Als Administrator können Sie alle Teilnehmer verwalten und deren Status ändern.
+				</p>
+			</div>
+
+			if len(participants) == 0 {
+				<div class="empty-state">
+					<p>Noch keine Teilnehmer registriert.</p>
+				</div>
+			} else {
+				<div class="admin-stats">
+					<div class="stat-card">
+						<div class="stat-number">{ fmt.Sprintf("%d", len(participants)) }</div>
+						<div class="stat-label">Gesamt</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-number">{ fmt.Sprintf("%d", countVerified(participants)) }</div>
+						<div class="stat-label">Verifiziert</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-number">{ fmt.Sprintf("%d", countAttending(participants)) }</div>
+						<div class="stat-label">Nehmen teil</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-number">{ fmt.Sprintf("%d", countAdmins(participants)) }</div>
+						<div class="stat-label">Admins</div>
+					</div>
+				</div>
+
+				<div class="admin-table-container">
+					<table class="admin-table">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>E-Mail</th>
+								<th>Status</th>
+								<th>Flags</th>
+								<th>Aktionen</th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, participant := range participants {
+								<tr class="admin-row">
+									<td class="participant-names">
+										<div class="name-primary">{ participant.Name }</div>
+										if participant.OldName != "" {
+											<div class="name-secondary">früher: { participant.OldName }</div>
+										}
+									</td>
+									<td class="participant-email">
+										<a href={ templ.SafeURL("mailto:" + participant.Mail) }>
+											{ participant.Mail }
+										</a>
+									</td>
+									<td class="participant-status">
+										<div class="status-badges">
+											if participant.Attend {
+												<span class="status-badge status-attending">Nimmt teil</span>
+											}
+											if participant.Info {
+												<span class="status-badge status-info">Möchte Infos</span>
+											}
+											if participant.Public {
+												<span class="status-badge status-public">Öffentlich</span>
+											}
+										</div>
+									</td>
+									<td class="participant-flags">
+										<div class="flag-badges">
+											if participant.Admin {
+												<span class="flag-badge flag-admin">Admin</span>
+											}
+											if participant.Verified {
+												<span class="flag-badge flag-verified">Verifiziert</span>
+											} else {
+												<span class="flag-badge flag-unverified">Nicht verifiziert</span>
+											}
+										</div>
+									</td>
+									<td class="participant-actions">
+										<button
+											class="btn btn-small btn-secondary"
+											onclick={ editParticipantJS(participant.Mail) }
+										>
+											Bearbeiten
+										</button>
+									</td>
+								</tr>
+								<tr class="edit-row" id={ "edit-" + participant.Mail } style="display: none;">
+									<td colspan="5">
+										@adminEditForm(participant)
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+
+			<div class="admin-actions">
+				<a href="/" class="btn btn-secondary">Zur Teilnehmerliste</a>
+			</div>
+		</div>
+
+		<script>
+			function editParticipant(email) {
+				// Hide all edit forms
+				document.querySelectorAll('.edit-row').forEach(row => {
+					row.style.display = 'none';
+				});
+
+				// Show the selected edit form
+				const editRow = document.getElementById('edit-' + email);
+				if (editRow) {
+					editRow.style.display = 'table-row';
+				}
+			}
+
+			function cancelEdit(email) {
+				const editRow = document.getElementById('edit-' + email);
+				if (editRow) {
+					editRow.style.display = 'none';
+				}
+			}
+		</script>
+	}
+}
+
+templ adminEditForm(participant model.Participant) {
+	<div class="admin-edit-form">
+		<h4>Teilnehmer bearbeiten</h4>
+		<form method="POST" action="/admin" class="edit-form">
+			<input type="hidden" name="email" value={ participant.Mail } />
+
+			<div class="form-row">
+				<div class="form-group">
+					<label for={ "new_email_" + participant.Mail } class="form-label">E-Mail-Adresse</label>
+					<input
+						type="email"
+						id={ "new_email_" + participant.Mail }
+						name="new_email"
+						class="form-input"
+						value={ participant.Mail }
+					/>
+				</div>
+
+				<div class="form-group">
+					<label for={ "name_" + participant.Mail } class="form-label">Name</label>
+					<input
+						type="text"
+						id={ "name_" + participant.Mail }
+						name="name"
+						class="form-input"
+						value={ participant.Name }
+						required
+					/>
+				</div>
+
+				<div class="form-group">
+					<label for={ "old_name_" + participant.Mail } class="form-label">Früherer Name</label>
+					<input
+						type="text"
+						id={ "old_name_" + participant.Mail }
+						name="old_name"
+						class="form-input"
+						value={ participant.OldName }
+					/>
+				</div>
+			</div>
+
+			<div class="form-row">
+				<div class="checkbox-group">
+					<label class="checkbox-label">
+						<input
+							type="checkbox"
+							name="info"
+							class="checkbox-input"
+							if participant.Info {
+								checked
+							}
+						/>
+						<span class="checkbox-text">Möchte Informationen</span>
+					</label>
+				</div>
+
+				<div class="checkbox-group">
+					<label class="checkbox-label">
+						<input
+							type="checkbox"
+							name="attend"
+							class="checkbox-input"
+							if participant.Attend {
+								checked
+							}
+						/>
+						<span class="checkbox-text">Nimmt teil</span>
+					</label>
+				</div>
+
+				<div class="checkbox-group">
+					<label class="checkbox-label">
+						<input
+							type="checkbox"
+							name="public"
+							class="checkbox-input"
+							if participant.Public {
+								checked
+							}
+						/>
+						<span class="checkbox-text">Öffentlich sichtbar</span>
+					</label>
+				</div>
+			</div>
+
+			<div class="form-row admin-flags">
+				<div class="checkbox-group">
+					<label class="checkbox-label admin-checkbox">
+						<input
+							type="checkbox"
+							name="admin"
+							class="checkbox-input"
+							if participant.Admin {
+								checked
+							}
+						/>
+						<span class="checkbox-text">Administrator</span>
+					</label>
+				</div>
+
+				<div class="checkbox-group">
+					<label class="checkbox-label admin-checkbox">
+						<input
+							type="checkbox"
+							name="verified"
+							class="checkbox-input"
+							if participant.Verified {
+								checked
+							}
+						/>
+						<span class="checkbox-text">Verifiziert</span>
+					</label>
+				</div>
+			</div>
+
+			<div class="form-actions">
+				<button type="submit" class="btn btn-primary">Speichern</button>
+				<button
+					type="button"
+					class="btn btn-secondary"
+					onclick={ cancelEditJS(participant.Mail) }
+				>
+					Abbrechen
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+func countVerified(participants []model.Participant) int {
+	count := 0
+	for _, p := range participants {
+		if p.Verified {
+			count++
+		}
+	}
+	return count
+}
+
+func countAdmins(participants []model.Participant) int {
+	count := 0
+	for _, p := range participants {
+		if p.Admin {
+			count++
+		}
+	}
+	return count
+}
+
+func editParticipantJS(email string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: "editParticipant",
+		Function: `function editParticipant(email) {
+			document.querySelectorAll('.edit-row').forEach(row => {
+				row.style.display = 'none';
+			});
+			const editRow = document.getElementById('edit-' + email);
+			if (editRow) {
+				editRow.style.display = 'table-row';
+			}
+		}`,
+		Call: templ.SafeScript("editParticipant", email),
+	}
+}
+
+func cancelEditJS(email string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: "cancelEdit",
+		Function: `function cancelEdit(email) {
+			const editRow = document.getElementById('edit-' + email);
+			if (editRow) {
+				editRow.style.display = 'none';
+			}
+		}`,
+		Call: templ.SafeScript("cancelEdit", email),
+	}
+}

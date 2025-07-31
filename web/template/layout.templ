@@ -1,21 +1,47 @@
 package template
 
-templ layout(name string, showLogout bool) {
+templ layout(title string, showLogout bool) {
 	<!DOCTYPE html>
 	<html lang="de">
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<title>{ name }</title>
+			<title>{ title } - Klassentreffen</title>
 			<link rel="icon" href="data:,"/>
-			<link
- 				rel="stylesheet"
- 				href="/assets/style.css"
-			/>
+			<link rel="stylesheet" href="/assets/style.css"/>
 			<script src="/assets/htmx.min.js"></script>
 		</head>
 		<body>
-			<!-- todo -->
+			<header class="header">
+				<div class="container">
+					<h1 class="logo">
+						<a href="/">Klassentreffen</a>
+					</h1>
+					if showLogout {
+						<nav class="nav">
+							<a href="/save" class="nav-link">Meine Daten</a>
+							<a href="/logout" class="nav-link logout">Abmelden</a>
+						</nav>
+					}
+				</div>
+			</header>
+			<main class="main">
+				<div class="container">
+					{ children... }
+				</div>
+			</main>
 		</body>
 	</html>
+}
+
+templ anonymousLayout(title string) {
+	@layout(title, false) {
+		{ children... }
+	}
+}
+
+templ userLayout(title string) {
+	@layout(title, true) {
+		{ children... }
+	}
 }

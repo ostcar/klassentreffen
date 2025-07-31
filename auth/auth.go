@@ -23,17 +23,19 @@ type User struct {
 }
 
 // FromRequest reads the user from a request.
-func FromRequest(r *http.Request, secred []byte) (User, error) {
+func FromRequest(w http.ResponseWriter, r *http.Request, secred []byte) (User, bool, error) {
 	tokenString := r.URL.Query().Get(authParamName)
+	fromURL := true
 
 	// Check for token in GET parameter first (has priority)
 	if tokenString == "" {
 		// Fall back to cookie
 		cookie, err := r.Cookie(authCookieName)
 		if err != nil {
-			return User{}, fmt.Errorf("reading cookie: %w", err)
+			return User{}, false, nil
 		}
 		tokenString = cookie.Value
+		fromURL = false
 	}
 
 	var user User
@@ -41,10 +43,16 @@ func FromRequest(r *http.Request, secred []byte) (User, error) {
 	if _, err := jwt.ParseWithClaims(tokenString, &user, func(token *jwt.Token) (any, error) {
 		return secred, nil
 	}); err != nil {
-		return User{}, fmt.Errorf("parsing token: %w", err)
+		return User{}, false, fmt.Errorf("parsing token: %w", err)
 	}
 
-	return user, nil
+	if fromURL {
+		if err := user.SetCookie(w, secred); err != nil {
+			return User{}, false, fmt.Errorf("setting cookie: %w", err)
+		}
+	}
+
+	return user, fromURL, nil
 }
 
 // SetCookie sets the cookie to the response.

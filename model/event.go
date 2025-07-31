@@ -10,43 +10,36 @@ type Event = sticky.Event[Model]
 
 func GetEvent(eventType string) Event {
 	switch eventType {
-	case eventParticipantUpdate{}.Name():
-		return &eventParticipantUpdate{}
+	case eventParticipantSave{}.Name():
+		return &eventParticipantSave{}
 	default:
 		return nil
 	}
 }
 
-// eventParticipantUpdate creates or updates a participant
-type eventParticipantUpdate struct {
-	Mail            string `json:"mail"`
-	ParticipantName string `json:"name"`
-	OldName         string `json:"old_name"`
-	Info            bool   `json:"info"`
-	Attend          bool   `json:"attend"`
-	Public          bool   `json:"public"`
-	Admin           bool   `json:"admin"`
-	Verified        bool   `json:"verified"`
+// eventParticipantSave creates or updates a participant
+type eventParticipantSave struct {
+	Participant Participant `json:"participant"`
 }
 
-func (e eventParticipantUpdate) Name() string {
+func (e eventParticipantSave) Name() string {
 	return "participant-update"
 }
 
-func (e eventParticipantUpdate) Validate(model Model) error {
+func (e eventParticipantSave) Validate(model Model) error {
 	return nil
 }
 
-func (e eventParticipantUpdate) Execute(model Model, time time.Time) Model {
-	model.Participant[e.Mail] = Participant{
-		Mail:     e.Mail,
-		Name:     e.ParticipantName,
-		OldName:  e.OldName,
-		Info:     e.Info,
-		Attend:   e.Attend,
-		Public:   e.Public,
-		Admin:    e.Admin,
-		Verified: e.Verified,
+func (e eventParticipantSave) Execute(model Model, time time.Time) Model {
+	model.Participant[e.Participant.Mail] = Participant{
+		Mail:     e.Participant.Mail,
+		Name:     e.Participant.Name,
+		OldName:  e.Participant.OldName,
+		Info:     e.Participant.Info,
+		Attend:   e.Participant.Attend,
+		Public:   e.Participant.Public,
+		Admin:    e.Participant.Admin,
+		Verified: e.Participant.Verified,
 	}
 	return model
 }

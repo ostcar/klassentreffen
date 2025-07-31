@@ -1,0 +1,86 @@
+package template
+
+import (
+	"fmt"
+	"github.com/ostcar/klassentreffen/model"
+)
+
+templ ParticipantList(participants []model.Participant, currentUser model.Participant) {
+	@userLayout("Teilnehmerliste") {
+		<div class="list-container">
+			<div class="list-header">
+				<h2>Teilnehmerliste</h2>
+			</div>
+
+			<div class="participant-grid">
+				for _, participant := range participants {
+					<div class="participant-card">
+						<div class="participant-header">
+							<h3 class="participant-name">{ participant.Name }</h3>
+							if participant.OldName != "" {
+								<p class="participant-old-name">
+									früher: { participant.OldName }
+								</p>
+							}
+						</div>
+
+						<div class="participant-info">
+							<div class="participant-status">
+								if participant.Attend {
+									<span class="status-badge status-attending">Nimmt teil</span>
+								}
+							</div>
+
+							<div class="participant-contact">
+								<a href={ templ.SafeURL("mailto:" + participant.Mail) } class="contact-link">
+									{ participant.Mail }
+								</a>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+
+			<div class="list-stats">
+				<p>
+					if countAttending(participants) > 0 {
+						{ fmt.Sprintf("%d", countAttending(participants)) } nehmen voraussichtlich teil
+					}
+				</p>
+			</div>
+
+		</div>
+	}
+}
+
+templ NotVerified() {
+	@userLayout("Nicht verifiziert") {
+		<div class="status-container">
+			<div class="status-card warning">
+				<div class="status-icon">⚠️</div>
+				<h2>Account nicht verifiziert</h2>
+				<p class="status-message">
+					Ihr Account wurde noch nicht von einem Administrator verifiziert.
+					Sie können die Teilnehmerliste erst einsehen, nachdem Ihr Account
+					freigegeben wurde.
+				</p>
+				<p class="status-info">
+					Sie erhalten eine E-Mail, sobald Ihr Account verifiziert wurde.
+				</p>
+				<div class="status-actions">
+					<a href="/update" class="btn btn-secondary">Meine Daten bearbeiten</a>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+func countAttending(participants []model.Participant) int {
+	count := 0
+	for _, p := range participants {
+		if p.Attend {
+			count++
+		}
+	}
+	return count
+}

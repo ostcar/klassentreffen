@@ -23,7 +23,7 @@ func defaultConfig() Config {
 	return Config{
 		WebListenAddr: "localhost:8080",
 		Secret:        CreatePassword(32),
-		BaseURL:       "http://localhost",
+		BaseURL:       "http://localhost:8080",
 		Debug:         true,
 		MailFrom:      "mail@example.com",
 	}

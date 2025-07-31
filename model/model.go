@@ -11,6 +11,10 @@ type Model struct {
 	Participant map[string]Participant
 }
 
+func (m Model) SaveParticipant(p Participant) Event {
+	return eventParticipantSave{p}
+}
+
 type Participant struct {
 	Mail     string `json:"mail"`
 	Name     string `json:"name"`

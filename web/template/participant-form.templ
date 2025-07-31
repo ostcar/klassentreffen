@@ -1,0 +1,142 @@
+package template
+
+import "github.com/ostcar/klassentreffen/model"
+
+templ ParticipantFormUpdate(email string, participant model.Participant, errMsg string) {
+	@userLayout("Daten bearbeiten") {
+		@participantFormContent(email, participant, errMsg, true)
+	}
+}
+
+templ ParticipantFormCreate(email string, errMsg string) {
+	@userLayout("Registrierung") {
+		@participantFormContent(email, model.Participant{}, errMsg ,false)
+	}
+}
+
+templ participantFormContent(email string, participant model.Participant, errMsg string, isUpdate bool) {
+	<div class="form-container">
+		<div class="form-card">
+			if isUpdate {
+				<h2>Ihre Daten bearbeiten</h2>
+				<p class="form-description">
+					Hier können Sie Ihre Angaben zum Klassentreffen aktualisieren.
+				</p>
+			} else {
+				<h2>Registrierung für das Klassentreffen</h2>
+				<p class="form-description">
+					Willkommen! Bitte füllen Sie die folgenden Angaben aus.
+				</p>
+			}
+			<form
+				method="POST"
+				action={ templ.SafeURL("/save") }
+				class="participant-form"
+			>
+				<input type="hidden" name="email" value={ email } />
+				<div class="form-group">
+					<label for="email" class="form-label">E-Mail-Adresse</label>
+					<input
+						type="email"
+						id="email"
+						name="email"
+						class="form-input"
+						value={ email }
+						readonly
+						disabled
+					/>
+					<small class="form-help">Die E-Mail-Adresse kann nicht geändert werden.</small>
+				</div>
+				<div class="form-group">
+					<label for="name" class="form-label required">Name</label>
+					<input
+						type="text"
+						id="name"
+						name="name"
+						class="form-input"
+						value={ participant.Name }
+						placeholder="Dein aktueller Name"
+						required
+					/>
+				</div>
+				<div class="form-group">
+					<label for="old_name" class="form-label">Früherer Name</label>
+					<input
+						type="text"
+						id="old_name"
+						name="old_name"
+						class="form-input"
+						value={ participant.OldName }
+						placeholder="Falls du während der Schulzeit einen anderen Namen hattest"
+					/>
+					<small class="form-help">Optional: Dein Name zur Schulzeit, falls abweichend</small>
+				</div>
+				<div class="form-section">
+					<h3>Einstellungen</h3>
+					<div class="checkbox-group">
+						<label class="checkbox-label">
+							<input
+								type="checkbox"
+								name="info"
+								class="checkbox-input"
+								if participant.Info {
+									checked
+								}
+							/>
+							<span class="checkbox-text">
+								Ich möchte Informationen zum Klassentreffen erhalten
+							</span>
+						</label>
+					</div>
+					<div class="checkbox-group">
+						<label class="checkbox-label">
+							<input
+								type="checkbox"
+								name="attend"
+								class="checkbox-input"
+								if participant.Attend {
+									checked
+								}
+							/>
+							<span class="checkbox-text">
+								Ich werde voraussichtlich teilnehmen
+							</span>
+						</label>
+					</div>
+					<div class="checkbox-group">
+						<label class="checkbox-label">
+							<input
+								type="checkbox"
+								name="public"
+								class="checkbox-input"
+								if participant.Public {
+									checked
+								}
+							/>
+							<span class="checkbox-text">
+								Andere dürfen meine Daten sehen
+							</span>
+						</label>
+					</div>
+				</div>
+				<div class="form-actions">
+					<button type="submit" class="btn btn-primary">
+						{ getButtonText(isUpdate) }
+					</button>
+					if isUpdate {
+						<a href="/" class="btn btn-secondary">Abbrechen</a>
+					}
+				</div>
+			</form>
+		</div>
+	</div>
+}
+
+
+
+func getButtonText(isUpdate bool) string {
+	if isUpdate {
+		return "Daten aktualisieren"
+	}
+	return "Registrierung abschließen"
+}
