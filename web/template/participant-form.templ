@@ -2,14 +2,14 @@ package template
 
 import "github.com/ostcar/klassentreffen/model"
 
-templ ParticipantFormUpdate(email string, participant model.Participant, errMsg string) {
-	@userLayout("Daten bearbeiten") {
-		@participantFormContent(email, participant, errMsg, true)
+templ ParticipantFormUpdate(email string, currentUser model.Participant, errMsg string) {
+	@userLayout("Daten bearbeiten", currentUser) {
+		@participantFormContent(email, currentUser, errMsg, true)
 	}
 }
 
 templ ParticipantFormCreate(email string, errMsg string) {
-	@userLayout("Registrierung") {
+	@userLayout("Registrierung", model.Participant{Mail: email}) {
 		@participantFormContent(email, model.Participant{}, errMsg ,false)
 	}
 }
@@ -131,8 +131,6 @@ templ participantFormContent(email string, participant model.Participant, errMsg
 		</div>
 	</div>
 }
-
-
 
 func getButtonText(isUpdate bool) string {
 	if isUpdate {

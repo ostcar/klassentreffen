@@ -151,7 +151,7 @@ func ParticipantList(participants []model.Participant, currentUser model.Partici
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = userLayout("Teilnehmerliste").Render(templ.WithChildren(templ_7745c5c3_Ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = userLayout("Teilnehmerliste", currentUser).Render(templ.WithChildren(templ_7745c5c3_Ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -162,7 +162,7 @@ func ParticipantList(participants []model.Participant, currentUser model.Partici
 	})
 }
 
-func NotVerified() templ.Component {
+func NotVerified(currentUser model.Participant) templ.Component {
 	return templ.ComponentFunc(func(templ_7745c5c3_Ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -203,7 +203,7 @@ func NotVerified() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var16 := `Ihr Account wurde noch nicht von einem Administrator verifiziert.`
+			templ_7745c5c3_Var16 := `Dein Account wurde noch nicht von einem Administrator verifiziert.`
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -212,7 +212,7 @@ func NotVerified() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var17 := `Sie können die Teilnehmerliste erst einsehen, nachdem Ihr Account`
+			templ_7745c5c3_Var17 := `Du kannst die Teilnehmerliste erst einsehen, nachdem dein Account`
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -226,21 +226,12 @@ func NotVerified() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p><p class=\"status-info\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p><div class=\"status-actions\"><a href=\"/save\" class=\"btn btn-secondary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var19 := `Sie erhalten eine E-Mail, sobald Ihr Account verifiziert wurde.`
+			templ_7745c5c3_Var19 := `Meine Daten bearbeiten`
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p><div class=\"status-actions\"><a href=\"/update\" class=\"btn btn-secondary\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Var20 := `Meine Daten bearbeiten`
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -253,7 +244,7 @@ func NotVerified() templ.Component {
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = userLayout("Nicht verifiziert").Render(templ.WithChildren(templ_7745c5c3_Ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = userLayout("Nicht verifiziert", currentUser).Render(templ.WithChildren(templ_7745c5c3_Ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -6,7 +6,7 @@ import (
 )
 
 templ ParticipantList(participants []model.Participant, currentUser model.Participant) {
-	@userLayout("Teilnehmerliste") {
+	@userLayout("Teilnehmerliste", currentUser) {
 		<div class="list-container">
 			<div class="list-header">
 				<h2>Teilnehmerliste</h2>
@@ -53,22 +53,19 @@ templ ParticipantList(participants []model.Participant, currentUser model.Partic
 	}
 }
 
-templ NotVerified() {
-	@userLayout("Nicht verifiziert") {
+templ NotVerified(currentUser model.Participant) {
+	@userLayout("Nicht verifiziert", currentUser) {
 		<div class="status-container">
 			<div class="status-card warning">
 				<div class="status-icon">⚠️</div>
 				<h2>Account nicht verifiziert</h2>
 				<p class="status-message">
-					Ihr Account wurde noch nicht von einem Administrator verifiziert.
-					Sie können die Teilnehmerliste erst einsehen, nachdem Ihr Account
+					Dein Account wurde noch nicht von einem Administrator verifiziert.
+					Du kannst die Teilnehmerliste erst einsehen, nachdem dein Account
 					freigegeben wurde.
 				</p>
-				<p class="status-info">
-					Sie erhalten eine E-Mail, sobald Ihr Account verifiziert wurde.
-				</p>
 				<div class="status-actions">
-					<a href="/update" class="btn btn-secondary">Meine Daten bearbeiten</a>
+					<a href="/save" class="btn btn-secondary">Meine Daten bearbeiten</a>
 				</div>
 			</div>
 		</div>

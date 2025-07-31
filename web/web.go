@@ -92,7 +92,7 @@ func (s *server) registerHandlers() {
 	mux.Handle("/login", handleError(s.handleLogin))
 	mux.Handle("/logout", handleError(s.handleLogout))
 	mux.Handle("/save", handleError(s.handleAuth(s.handleParticipantSave)))
-	mux.Handle("/admin", handleError(s.handleAuth(s.handleAdminSave)))
+	mux.Handle("/admin", handleError(s.handleAuth(s.handleAdmin)))
 
 	s.Handler = mux
 }
@@ -118,11 +118,12 @@ func (s server) handleHome(w http.ResponseWriter, r *http.Request, user auth.Use
 		return template.ParticipantFormCreate(user.Mail, "").Render(r.Context(), w)
 	}
 
-	participants := maps.Values(model.Participant)
-	if !me.Admin {
-		participants = filterPublic(filterVerified(participants))
+	if !me.Verified {
+		return template.NotVerified(me).Render(r.Context(), w)
 	}
 
+	participants := maps.Values(model.Participant)
+	participants = filterPublic(filterVerified(participants))
 	return template.ParticipantList(slices.Collect(participants), me).Render(r.Context(), w)
 }
 
@@ -225,7 +226,7 @@ func (s server) handleParticipantSave(w http.ResponseWriter, r *http.Request, us
 		Verified: me.Verified || isFirstUser,
 	}
 
-	if err := saveEvent(m.SaveParticipant(participant)); err != nil {
+	if err := saveEvent(m.SaveParticipant(participant, user.Mail)); err != nil {
 		return fmt.Errorf("save participant: %w", err)
 	}
 
@@ -234,12 +235,7 @@ func (s server) handleParticipantSave(w http.ResponseWriter, r *http.Request, us
 	return nil
 }
 
-func (s server) handleAdminSave(w http.ResponseWriter, r *http.Request, user auth.User) error {
-	if r.Method != http.MethodPost {
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
-		return nil
-	}
-
+func (s server) handleAdmin(w http.ResponseWriter, r *http.Request, user auth.User) error {
 	m, saveEvent, close := s.model.ForWriting()
 	defer close()
 
@@ -249,36 +245,34 @@ func (s server) handleAdminSave(w http.ResponseWriter, r *http.Request, user aut
 		return nil
 	}
 
-	email := r.FormValue("email")
-	if email == "" {
+	if r.Method != http.MethodPost {
+		participants := slices.Collect(maps.Values(m.Participant))
+		return template.AdminList(participants, me).Render(r.Context(), w)
+	}
+
+	email := strings.TrimSpace(r.FormValue("email"))
+
+	newEmail := strings.TrimSpace(r.FormValue("new_email"))
+	if _, alreadyExists := m.Participant[newEmail]; alreadyExists {
+		// TODO: somehow show the error to the user
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 		return nil
 	}
 
-	participant, exists := m.Participant[email]
+	name := strings.TrimSpace(r.FormValue("name"))
 
-	if !exists {
-		// TODO: somehow show the error to the user
-		return nil
+	participant := model.Participant{
+		Mail:     newEmail,
+		Name:     name,
+		OldName:  strings.TrimSpace(r.FormValue("old_name")),
+		Info:     r.FormValue("info") == "on",
+		Attend:   r.FormValue("attend") == "on",
+		Public:   r.FormValue("public") == "on",
+		Admin:    r.FormValue("admin") == "on",
+		Verified: r.FormValue("verified") == "on",
 	}
 
-	newEmail := strings.TrimSpace(r.FormValue("new_email"))
-
-	if _, alreadyExists := m.Participant[newEmail]; alreadyExists {
-		// TODO: somehow show the error to the user
-		return nil
-	}
-
-	participant.Mail = newEmail
-	participant.Name = strings.TrimSpace(r.FormValue("name"))
-	participant.OldName = strings.TrimSpace(r.FormValue("old_name"))
-	participant.Info = r.FormValue("info") == "on"
-	participant.Attend = r.FormValue("attend") == "on"
-	participant.Public = r.FormValue("public") == "on"
-	participant.Admin = r.FormValue("admin") == "on"
-	participant.Verified = r.FormValue("verified") == "on"
-
-	if err := saveEvent(m.SaveParticipant(participant)); err != nil {
+	if err := saveEvent(m.SaveParticipant(participant, email)); err != nil {
 		return fmt.Errorf("save participant: %w", err)
 	}
 

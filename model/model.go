@@ -11,8 +11,8 @@ type Model struct {
 	Participant map[string]Participant
 }
 
-func (m Model) SaveParticipant(p Participant) Event {
-	return eventParticipantSave{p}
+func (m Model) SaveParticipant(p Participant, mail string) Event {
+	return eventParticipantSave{p, mail}
 }
 
 type Participant struct {

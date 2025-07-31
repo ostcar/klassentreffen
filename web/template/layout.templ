@@ -1,6 +1,10 @@
 package template
 
-templ layout(title string, showLogout bool) {
+import (
+	"github.com/ostcar/klassentreffen/model"
+)
+
+templ layout(title string, user model.Participant) {
 	<!DOCTYPE html>
 	<html lang="de">
 		<head>
@@ -17,9 +21,12 @@ templ layout(title string, showLogout bool) {
 					<h1 class="logo">
 						<a href="/">Klassentreffen</a>
 					</h1>
-					if showLogout {
+					if user.Mail != "" {
 						<nav class="nav">
 							<a href="/save" class="nav-link">Meine Daten</a>
+							if user.Admin {
+								<a href="/admin" class="nav-link">Admin</a>
+							}
 							<a href="/logout" class="nav-link logout">Abmelden</a>
 						</nav>
 					}
@@ -35,13 +42,13 @@ templ layout(title string, showLogout bool) {
 }
 
 templ anonymousLayout(title string) {
-	@layout(title, false) {
+	@layout(title, model.Participant{}) {
 		{ children... }
 	}
 }
 
-templ userLayout(title string) {
-	@layout(title, true) {
+templ userLayout(title string, user model.Participant) {
+	@layout(title, user) {
 		{ children... }
 	}
 }

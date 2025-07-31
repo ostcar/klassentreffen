@@ -20,10 +20,11 @@ func GetEvent(eventType string) Event {
 // eventParticipantSave creates or updates a participant
 type eventParticipantSave struct {
 	Participant Participant `json:"participant"`
+	Mail        string      `json:"mail"`
 }
 
 func (e eventParticipantSave) Name() string {
-	return "participant-update"
+	return "participant-save"
 }
 
 func (e eventParticipantSave) Validate(model Model) error {
@@ -31,6 +32,10 @@ func (e eventParticipantSave) Validate(model Model) error {
 }
 
 func (e eventParticipantSave) Execute(model Model, time time.Time) Model {
+	if e.Mail != e.Participant.Mail {
+		delete(model.Participant, e.Mail)
+	}
+
 	model.Participant[e.Participant.Mail] = Participant{
 		Mail:     e.Participant.Mail,
 		Name:     e.Participant.Name,
