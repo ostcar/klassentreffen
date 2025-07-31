@@ -9,7 +9,9 @@ import "context"
 import "io"
 import "bytes"
 
-import "github.com/ostcar/klassentreffen/model"
+import (
+	"github.com/ostcar/klassentreffen/model"
+)
 
 func layout(title string, user model.Participant) templ.Component {
 	return templ.ComponentFunc(func(templ_7745c5c3_Ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {

@@ -120,7 +120,7 @@ func participantFormContent(email string, participant model.Participant, errMsg 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var7 := `Hier können Sie Ihre Angaben zum Klassentreffen aktualisieren.`
+			templ_7745c5c3_Var7 := `Hier kannst du deine Angaben zum Klassentreffen aktualisieren.`
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -143,7 +143,7 @@ func participantFormContent(email string, participant model.Participant, errMsg 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var9 := `Willkommen! Bitte füllen Sie die folgenden Angaben aus.`
+			templ_7745c5c3_Var9 := `Willkommen! Bitte fülle die folgenden Angaben aus.`
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
