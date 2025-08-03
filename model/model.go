@@ -15,6 +15,10 @@ func (m Model) SaveParticipant(p Participant, mail string) Event {
 	return eventParticipantSave{p, mail}
 }
 
+func (m Model) DeleteParticipant(mail string) Event {
+	return eventParticipantDelete{mail}
+}
+
 type Participant struct {
 	Mail     string `json:"mail"`
 	Name     string `json:"name"`

@@ -315,6 +315,17 @@ body {
     color: #2d3748;
 }
 
+.btn-danger {
+    background: #e53e3e;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c53030;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+}
+
 .btn-small {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;

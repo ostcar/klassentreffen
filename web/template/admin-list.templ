@@ -99,6 +99,12 @@ templ AdminList(participants []model.Participant, currentUser model.Participant)
 										>
 											Bearbeiten
 										</button>
+										<button
+											class="btn btn-small btn-danger"
+											onclick={ deleteParticipantJS(participant.Mail, participant.Name) }
+										>
+											Löschen
+										</button>
 									</td>
 								</tr>
 								<tr class="edit-row" id={ "edit-" + participant.Mail } style="display: none;">
@@ -151,6 +157,23 @@ templ AdminList(participants []model.Participant, currentUser model.Participant)
 				const editRow = document.getElementById('edit-' + email);
 				if (editRow) {
 					editRow.style.display = 'none';
+				}
+			}
+
+			function deleteParticipant(email, name) {
+				if (confirm('Sind Sie sicher, dass Sie den Teilnehmer "' + name + '" löschen möchten?\n\nDiese Aktion kann nicht rückgängig gemacht werden.')) {
+					const form = document.createElement('form');
+					form.method = 'POST';
+					form.action = '/delete';
+
+					const emailInput = document.createElement('input');
+					emailInput.type = 'hidden';
+					emailInput.name = 'email';
+					emailInput.value = email;
+
+					form.appendChild(emailInput);
+					document.body.appendChild(form);
+					form.submit();
 				}
 			}
 		</script>
@@ -335,6 +358,31 @@ func cancelEditJS(email string) templ.ComponentScript {
 		Call: templ.SafeScript("cancelEdit", email),
 	}
 }
+
+func deleteParticipantJS(email string, name string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: "deleteParticipant",
+		Function: `function deleteParticipant(email, name) {
+			if (confirm('Sind Sie sicher, dass Sie den Teilnehmer "' + name + '" löschen möchten?\\n\\nDiese Aktion kann nicht rückgängig gemacht werden.')) {
+				const form = document.createElement('form');
+				form.method = 'POST';
+				form.action = '/delete';
+
+				const emailInput = document.createElement('input');
+				emailInput.type = 'hidden';
+				emailInput.name = 'email';
+				emailInput.value = email;
+
+				form.appendChild(emailInput);
+				document.body.appendChild(form);
+				form.submit();
+			}
+		}`,
+		Call: templ.SafeScript("deleteParticipant", email, name),
+	}
+}
+
+
 
 templ addUserForm() {
 	<div class="admin-edit-form">

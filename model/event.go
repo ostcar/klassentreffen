@@ -12,6 +12,9 @@ func GetEvent(eventType string) Event {
 	switch eventType {
 	case eventParticipantSave{}.Name():
 		return &eventParticipantSave{}
+
+	case eventParticipantDelete{}.Name():
+		return &eventParticipantDelete{}
 	default:
 		return nil
 	}
@@ -46,5 +49,23 @@ func (e eventParticipantSave) Execute(model Model, time time.Time) Model {
 		Admin:    e.Participant.Admin,
 		Verified: e.Participant.Verified,
 	}
+	return model
+}
+
+// eventParticipantSave creates or updates a participant
+type eventParticipantDelete struct {
+	Mail string `json:"mail"`
+}
+
+func (e eventParticipantDelete) Name() string {
+	return "participant-delete"
+}
+
+func (e eventParticipantDelete) Validate(model Model) error {
+	return nil
+}
+
+func (e eventParticipantDelete) Execute(model Model, time time.Time) Model {
+	delete(model.Participant, e.Mail)
 	return model
 }

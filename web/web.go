@@ -105,6 +105,7 @@ func (s *server) registerHandlers() {
 	mux.Handle("/login", handleError(s.handleLogin))
 	mux.Handle("/logout", handleError(s.handleLogout))
 	mux.Handle("/save", handleError(s.handleAuth(s.handleParticipantSave)))
+	mux.Handle("/delete", handleError(s.handleAuth(s.handleParticipantDelete)))
 	mux.Handle("/admin", handleError(s.handleAuth(s.handleAdmin)))
 
 	s.Handler = mux
@@ -308,6 +309,34 @@ func (s server) handleAdmin(w http.ResponseWriter, r *http.Request, user auth.Us
 
 	if err := saveEvent(m.SaveParticipant(participant, email)); err != nil {
 		return fmt.Errorf("save participant: %w", err)
+	}
+
+	http.Redirect(w, r, "/admin", http.StatusSeeOther)
+	return nil
+}
+
+// handleParticipantDelete removes a participant.
+//
+// Only allowed for admins.
+func (s server) handleParticipantDelete(w http.ResponseWriter, r *http.Request, user auth.User) error {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusForbidden)
+		return nil
+	}
+
+	m, saveEvent, close := s.model.ForWriting()
+	defer close()
+
+	me, ok := m.Participant[user.Mail]
+	if !ok || !me.Admin {
+		w.WriteHeader(http.StatusForbidden)
+		return nil
+	}
+
+	email := strings.TrimSpace(r.FormValue("email"))
+
+	if err := saveEvent(m.DeleteParticipant(email)); err != nil {
+		return fmt.Errorf("delete participant: %w", err)
 	}
 
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)
