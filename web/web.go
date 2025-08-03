@@ -306,6 +306,9 @@ func (s server) handleAuth(next authenticatedHandler) errorHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		user, fromURL, err := auth.FromRequest(w, r, []byte(s.cfg.Secret))
 		if err != nil {
+			if auth.IsExpiredError(err) {
+				http.Redirect(w, r, "/", http.StatusSeeOther)
+			}
 			return fmt.Errorf("read auth data: %w", err)
 		}
 

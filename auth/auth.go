@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -23,7 +24,7 @@ type User struct {
 }
 
 // FromRequest reads the user from a request.
-func FromRequest(w http.ResponseWriter, r *http.Request, secred []byte) (User, bool, error) {
+func FromRequest(w http.ResponseWriter, r *http.Request, secret []byte) (User, bool, error) {
 	tokenString := r.URL.Query().Get(authParamName)
 	fromURL := true
 
@@ -40,28 +41,57 @@ func FromRequest(w http.ResponseWriter, r *http.Request, secred []byte) (User, b
 
 	var user User
 
-	if _, err := jwt.ParseWithClaims(tokenString, &user, func(token *jwt.Token) (any, error) {
-		return secred, nil
-	}); err != nil {
+	_, err := jwt.ParseWithClaims(tokenString, &user, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return secret, nil
+	})
+
+	if err != nil {
 		return User{}, false, fmt.Errorf("parsing token: %w", err)
 	}
 
 	if fromURL {
-		if err := user.SetCookie(w, secred); err != nil {
-			return User{}, false, fmt.Errorf("setting cookie: %w", err)
-		}
+		http.SetCookie(w, &http.Cookie{
+			Name:     authCookieName,
+			Value:    tokenString,
+			Path:     "/",
+			MaxAge:   int(loginTime.Seconds()),
+			Secure:   true,
+			HttpOnly: true,
+		})
+
 	}
 
 	return user, fromURL, nil
 }
 
-// SetCookie sets the cookie to the response.
-func (u User) SetCookie(w http.ResponseWriter, secred []byte) error {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, u)
+func createToken(mail string, validtime time.Duration, secret []byte) (string, error) {
+	// Claims mit Ablaufzeit erstellen
+	claims := User{
+		Mail: mail,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(validtime)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+		},
+	}
 
-	tokenString, err := token.SignedString(secred)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(secret)
 	if err != nil {
-		return fmt.Errorf("signing token: %w", err)
+		return "", fmt.Errorf("signing token: %w", err)
+	}
+
+	return tokenString, nil
+}
+
+// SetCookie sets the cookie to the response.
+func (u User) SetCookie(w http.ResponseWriter, secret []byte) error {
+	tokenString, err := createToken(u.Mail, loginTime, secret)
+	if err != nil {
+		return fmt.Errorf("create token: %w", err)
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -77,12 +107,10 @@ func (u User) SetCookie(w http.ResponseWriter, secred []byte) error {
 }
 
 // SetURL sets the JWT token as a GET parameter in the URL and returns the modified URL.
-func (u User) SetURL(urlString string, secred []byte) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, u)
-
-	tokenString, err := token.SignedString(secred)
+func (u User) SetURL(urlString string, secret []byte) (string, error) {
+	tokenString, err := createToken(u.Mail, loginTime, secret)
 	if err != nil {
-		return "", fmt.Errorf("signing token: %w", err)
+		return "", fmt.Errorf("create token: %w", err)
 	}
 
 	parsedURL, err := url.Parse(urlString)
@@ -113,4 +141,8 @@ func Logout(w http.ResponseWriter) {
 // IsAnonymous tells, if the user is not logged in.
 func (u User) IsAnonymous() bool {
 	return u.Mail == ""
+}
+
+func IsExpiredError(err error) bool {
+	return errors.Is(err, jwt.ErrTokenExpired)
 }
