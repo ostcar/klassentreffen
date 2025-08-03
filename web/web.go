@@ -124,7 +124,7 @@ func (s server) handleHome(w http.ResponseWriter, r *http.Request, user auth.Use
 
 	participants := maps.Values(model.Participant)
 	participants = filterPublic(filterVerified(participants))
-	return template.ParticipantList(slices.Collect(participants), me).Render(r.Context(), w)
+	return template.ParticipantList(sortParticipant(participants), me).Render(r.Context(), w)
 }
 
 func filterPublic(full iter.Seq[model.Participant]) iter.Seq[model.Participant] {
@@ -246,14 +246,15 @@ func (s server) handleAdmin(w http.ResponseWriter, r *http.Request, user auth.Us
 	}
 
 	if r.Method != http.MethodPost {
-		participants := slices.Collect(maps.Values(m.Participant))
+		participants := sortParticipant(maps.Values(m.Participant))
 		return template.AdminList(participants, me).Render(r.Context(), w)
 	}
 
 	email := strings.TrimSpace(r.FormValue("email"))
 
 	newEmail := strings.TrimSpace(r.FormValue("new_email"))
-	if _, alreadyExists := m.Participant[newEmail]; alreadyExists {
+	if _, alreadyExists := m.Participant[newEmail]; email != newEmail && alreadyExists {
+		log.Printf("Admin tries to create a user that already exists, %v, %v", email, newEmail)
 		// TODO: somehow show the error to the user
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 		return nil
@@ -278,6 +279,12 @@ func (s server) handleAdmin(w http.ResponseWriter, r *http.Request, user auth.Us
 
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)
 	return nil
+}
+
+func sortParticipant(participants iter.Seq[model.Participant]) []model.Participant {
+	return slices.SortedFunc(participants, func(a, b model.Participant) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 }
 
 func handleStatic() http.Handler {
