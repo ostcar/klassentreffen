@@ -7,9 +7,11 @@ import (
 	"github.com/wneessen/go-mail"
 )
 
-func Send(cfg config.Config, to string, text string) error {
+func Send(cfg config.Config, to string, subject string, format string, a ...any) error {
+	text := fmt.Sprintf(format, a...)
+
 	if cfg.Debug {
-		return sendMailDebug(to, text)
+		return sendMailDebug(to, subject, text)
 	}
 	// First we create a mail message
 	m := mail.NewMsg()
@@ -21,7 +23,7 @@ func Send(cfg config.Config, to string, text string) error {
 		return fmt.Errorf("set to header: %w", err)
 	}
 
-	m.Subject("Klassentreffen")
+	m.Subject(subject)
 	m.SetBodyString(mail.TypeTextPlain, text)
 
 	// Secondly the mail client
@@ -42,9 +44,9 @@ func Send(cfg config.Config, to string, text string) error {
 	return nil
 }
 
-func sendMailDebug(to string, text string) error {
+func sendMailDebug(to string, subject string, text string) error {
 	fmt.Printf("To: %s\n", to)
-	fmt.Printf("Subject: %s\n", "Klassentreffen")
+	fmt.Printf("Subject: %s\n", subject)
 	fmt.Printf("Body:\n%s\n", text)
 	return nil
 }

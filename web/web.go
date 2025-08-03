@@ -21,13 +21,26 @@ import (
 	"github.com/ostcar/sticky"
 )
 
-const emailText = `Hallo,
+const emailTextLogin = `Hallo,
 
 klicke auf den folgenden Link, um dich anzumelden:
 
 %s
 
 Dieser Link ist 24 Stunden gültig.
+
+Viele Grüße
+Das Klassentreffen-Team`
+
+const emailTextInformNewUser = `Hallo
+
+ein neuer Nutzer hat sich fürs Klassentreffen angemeldet.
+
+%s
+
+Melde dich an um ihn zu verifizieren:
+
+%s
 
 Viele Grüße
 Das Klassentreffen-Team`
@@ -172,7 +185,7 @@ func (s server) handleLogin(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("creating login URL: %w", err)
 	}
 
-	if err := mail.Send(s.cfg, email, fmt.Sprintf(emailText, loginURL)); err != nil {
+	if err := mail.Send(s.cfg, email, "Klassentreffen", emailTextLogin, loginURL); err != nil {
 		return fmt.Errorf("sending email: %w", err)
 	}
 
@@ -228,6 +241,26 @@ func (s server) handleParticipantSave(w http.ResponseWriter, r *http.Request, us
 
 	if err := saveEvent(m.SaveParticipant(participant, user.Mail)); err != nil {
 		return fmt.Errorf("save participant: %w", err)
+	}
+
+	if !isUpdate {
+		// TODO: Send E-Mail to all admins.
+		for adminAddress, participant := range m.Participant {
+			if !participant.Admin {
+				continue
+			}
+
+			admin := auth.User{Mail: adminAddress}
+
+			loginURL, err := admin.SetURL(s.cfg.BaseURL+"/", []byte(s.cfg.Secret))
+			if err != nil {
+				return fmt.Errorf("creating login URL: %w", err)
+			}
+
+			if err := mail.Send(s.cfg, adminAddress, "Klassentreffen - Neuer Nutzer", emailTextInformNewUser, name, loginURL); err != nil {
+				log.Printf("send mail: %v", err)
+			}
+		}
 	}
 
 	// Redirect to home
