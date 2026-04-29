@@ -71,6 +71,17 @@ templ participantFormContent(email string, participant model.Participant, errMsg
 					/>
 					<small class="form-help">Optional: Dein Name zur Schulzeit, falls abweichend</small>
 				</div>
+				<div class="form-group">
+					<label for="food" class="form-label">Ich bringe mit</label>
+					<input
+						type="text"
+						id="food"
+						name="food"
+						class="form-input"
+						value={ participant.Food }
+					/>
+					<small class="form-help">Falls du dabei bist: Mitgebrachtes essen</small>
+				</div>
 				<div class="form-section">
 					<h3>Einstellungen</h3>
 					<div class="checkbox-group">

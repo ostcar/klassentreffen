@@ -48,6 +48,7 @@ func (e eventParticipantSave) Execute(model Model, time time.Time) Model {
 		Public:   e.Participant.Public,
 		Admin:    e.Participant.Admin,
 		Verified: e.Participant.Verified,
+		Food:     e.Participant.Food,
 	}
 	return model
 }

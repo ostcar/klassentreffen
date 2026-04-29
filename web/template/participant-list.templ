@@ -35,6 +35,14 @@ templ ParticipantList(participants []model.Participant, currentUser model.Partic
 								<a href={ templ.SafeURL("mailto:" + participant.Mail) } class="contact-link">
 									{ participant.Mail }
 								</a>
+								if participant.Food != "" {
+									<p>
+										<strong>Ich bringe mit:</strong>
+									</p>
+									<p>
+										 { participant.Food}
+									</p>
+								}
 							</div>
 						</div>
 					</div>

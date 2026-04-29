@@ -28,4 +28,5 @@ type Participant struct {
 	Public   bool   `json:"public"`
 	Admin    bool   `json:"admin"`
 	Verified bool   `json:"verified"`
+	Food     string `json:"food"`
 }

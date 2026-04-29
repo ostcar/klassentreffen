@@ -238,6 +238,7 @@ func (s server) handleParticipantSave(w http.ResponseWriter, r *http.Request, us
 		Public:   r.FormValue("public") == "on",
 		Admin:    me.Admin || isFirstUser,
 		Verified: me.Verified || isFirstUser,
+		Food:     r.FormValue("food"),
 	}
 
 	if err := saveEvent(m.SaveParticipant(participant, user.Mail)); err != nil {
